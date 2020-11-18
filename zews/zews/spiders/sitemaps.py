@@ -17,11 +17,10 @@ class SitemapSpider(Spider):
 
     sitemap_limit = 10
     sitemap_urls = [
-        'https://www.cnn.com/sitemaps/cnn/news.xml',
-        'https://www.foxnews.com/sitemap.xml?type=news',
-        # 'https://www.theverge.com/robots.txt',
-        'https://www.nbcnews.com/sitemap/nbcnews/sitemap-news',
-        'https://www.cnbc.com/sitemap_news.xml'
+        # 'https://www.cnn.com/sitemaps/cnn/news.xml',
+        # 'https://www.foxnews.com/sitemap.xml?type=news',
+        # 'https://www.nbcnews.com/sitemap/nbcnews/sitemap-news',
+        'https://www.cnbc.com/2020/11/17/worst-work-model-of-the-future-its-not-all-office-or-fully-remote.html'
     ]
     sitemap_rules = [('', 'parse')]
     sitemap_follow = ['']
@@ -47,7 +46,10 @@ class SitemapSpider(Spider):
     def start_requests(self):
         for url in self.sitemap_urls:
             self.sitemap_links_discovered[url] = []
-            yield Request(url, self._parse_sitemap)
+            if url.endswith('.html'):
+              yield Request(url, self.parse)
+            else:
+              yield Request(url, self._parse_sitemap)
         
     def sitemap_filter(self, entries):
         """This method can be used to filter sitemap entries by their
@@ -106,9 +108,13 @@ class SitemapSpider(Spider):
             return response.body
 
     def parse(self, response, referrer=None):
-        article_body = response.css('div.ArticleBody-articleBody .group').css('p::text').getall()
+        article_body = response.css('div.ArticleBody-articleBody .group')
+
+        # extracts all descendent 'text' elements from the paragraph
+        # https://docs.scrapy.org/en/latest/topics/selectors.html#extensions-to-css-selectors
+        paragraphs = article_body.css('*::text').getall()
         yield {
-            'body': article_body,
+            'paragraphs': paragraphs,
             'url': response.url
         }
 
