@@ -65,7 +65,7 @@ ROBOTSTXT_OBEY = True
 ITEM_PIPELINES = {
    'zews.pipelines.SitemapPipeline': 300,
    # 'zews.pipelines.ParagraphPipeline': 301,
-   # 'zews.pipelines.SentimentPipeline': 420,
+   'zews.pipelines.TrainingPipeline': 420,
    # 'zews.pipelines.ContextPipeline': 420,
 }
 

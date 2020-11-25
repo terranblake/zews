@@ -20,7 +20,7 @@ class SitemapSpider(Spider):
         # 'https://www.cnn.com/sitemaps/cnn/news.xml',
         # 'https://www.foxnews.com/sitemap.xml?type=news',
         # 'https://www.nbcnews.com/sitemap/nbcnews/sitemap-news',
-        'https://www.cnbc.com/2020/11/17/worst-work-model-of-the-future-its-not-all-office-or-fully-remote.html'
+        'https://www.cnbc.com/sitemap_news.xml'
     ]
     sitemap_rules = [('', 'parse')]
     sitemap_follow = ['']
@@ -108,17 +108,27 @@ class SitemapSpider(Spider):
             return response.body
 
     def parse(self, response, referrer=None):
+        print(response.body)
         article_body = response.css('div.ArticleBody-articleBody .group')
-
+        symbols = response.css('a[href*=symbol]::attr(href)').getall()
+        symbols_list = []
+        for x in symbols:
+            symbol_loc = x.find("=")
+            symbol = x[symbol_loc+1:len(x)]
+            symbols_list.append(symbol)
         # extracts all descendent 'text' elements from the paragraph
         # https://docs.scrapy.org/en/latest/topics/selectors.html#extensions-to-css-selectors
         paragraphs = article_body.css('*::text').getall()
+        paragraphs = ' '.join(str(sentence) for sentence in paragraphs)
+        paragraphs = paragraphs.replace(u'\'',u'')
+        paragraphs = paragraphs.replace(u'\xa0',u'')
+        print("Paragraph length!      :", len(paragraphs))
         yield {
             'paragraphs': paragraphs,
-            'url': response.url
+            'url': response.url,
+            'symbols': symbols_list
         }
-
-
+        
 def regex(x):
     if isinstance(x, str):
         return re.compile(x)
